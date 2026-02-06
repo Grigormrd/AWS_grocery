@@ -1,0 +1,8 @@
+aws_region       = "eu-north-1"
+project_name     = "grocerymate"
+allowed_ssh_cidr = "YOUR_PUBLIC_IP/32"
+ec2_key_name     = "YOUR_KEYPAIR_NAME"
+avatars_bucket_name = "grocerymate-avatars-yourname-1234"
+
+enable_alarm_notifications = false
+alarm_email = "you@example.com"
