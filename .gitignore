@@ -2,4 +2,6 @@
 frontend/frontend-build.zip
 frontend/temp_extract/
 frontend/src/config.js~
+infrastructure/terraform.tfstate
+infrastructure/terraform.tfstatebackup
 venv/
