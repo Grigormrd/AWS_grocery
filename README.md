@@ -1,144 +1,70 @@
-# 🛒 GroceryMate – AWS Cloud Deployment
+# GroceryMate – AWS MVP (Terraform)
 
-GroceryMate ist eine containerisierte Webanwendung, die auf AWS betrieben wird.
-Das Projekt nutzt **Docker**, **Amazon EC2**, **Amazon RDS (PostgreSQL)** und **Amazon S3** und folgt Best Practices wie **IAM Roles statt statischer AWS-Credentials**.
+A small but complete **AWS MVP** showing cloud engineering skills: Infrastructure as Code, secure-by-default configuration, and a deployable application runtime on EC2.
 
----
+## What this repo demonstrates (for recruiters)
+- **Terraform IaC** with a tidy structure (`main.tf`, `variables.tf`, `outputs.tf`, `provider.tf` + split resource files)
+- **S3** avatar bucket (private, versioning enabled)
+- **IAM** instance role with least‑privilege S3 access
+- **EC2** instance + Security Group (SSH + App port)
+- **CloudWatch as Code**: dashboard + CPU alarm (+ optional email notifications via SNS)
+- Clear **deployment steps** and reproducibility
 
-## 🧱 Architektur-Überblick
+## Architecture (high level)
 
-**Technologien & AWS-Services:**
+User → `EC2 (Dockerized app on :5000)`  
+             ↘ uploads → `S3 (avatars bucket)`  
+             ↘ metrics → `CloudWatch (dashboard + alarms)`
 
-- Docker – Containerisierung der Anwendung
-- Amazon EC2 – Hosting der Anwendung
-- Amazon RDS (PostgreSQL) – Persistente Datenbank
-- Amazon S3 – Speicherung von Benutzer-Avataren
-- AWS IAM Role – Sicherer Zugriff auf S3 ohne Access Keys
-- Flask (Python) – Backend
-
----
-
-## 📦 Projektstruktur
-
-```
-.
-├── app/
-├── avatar/
-├── db_backup/
-├── logs/
-├── run.py
-├── manage.py
-├── requirements.txt
-├── Dockerfile
-├── .env.example
-└── README.md
-```
+> Database (RDS/Postgres) can be kept manual for the MVP or added later as Terraform.
 
 ---
 
-## ⚙️ Voraussetzungen
+## Repo structure (curriculum-ready)
 
-- AWS Account
-- EC2 Instance (Linux)
-- Docker installiert
-- Amazon RDS PostgreSQL
-- Amazon S3 Bucket
-- IAM Role mit S3-Zugriff (z. B. AmazonS3FullAccess für Dev)
+- `infrastructure/` (**Week 6**) – all IaC lives here  
+- `infrastructure/terraform/` (**Week 8**) – organized Terraform root module  
+- `infrastructure/terraform/cloudwatch.tf` (**Week 9**) – CloudWatch as code
 
 ---
 
-## 🔐 Sicherheit (IAM Role)
+## Deploy (Terraform)
 
-Es werden **keine AWS Access Keys** verwendet.
+### 1) Prerequisites
+- Terraform ≥ 1.5
+- AWS credentials configured **or** run Terraform on an EC2 instance with a provisioning IAM role
 
-Die EC2-Instance übernimmt eine IAM Role, welche den Zugriff auf S3 erlaubt.
-AWS SDKs (boto3) nutzen diese Rolle automatisch.
+### 2) Configure variables
+```bash
+cd infrastructure/terraform
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Edit `terraform.tfvars` (bucket name must be globally unique; set your key pair name and your IP).
+
+### 3) Apply
+```bash
+terraform init
+terraform fmt -recursive
+terraform validate
+terraform plan
+terraform apply
+```
+
+### 4) Verify
+Terraform outputs:
+- `ec2_public_ip`
+- `avatars_bucket_name`
+- `cloudwatch_dashboard_name`
+- `cpu_alarm_name`
+
+Open the app:
+`http://<ec2_public_ip>:5000`
 
 ---
 
-## 🪣 Amazon S3
-
-- Bucket-Name muss global eindeutig sein
-- Beispiel: `grocerymate-avatars-grigor`
-- Region muss korrekt gesetzt sein (`us-east-1`, `eu-north-1`, etc.)
-
----
-
-## 🗄️ Amazon RDS (PostgreSQL)
-
-Beispiel-Konfiguration:
-
+## Clean-up
+```bash
+cd infrastructure/terraform
+terraform destroy
 ```
-POSTGRES_HOST=database-1.xxxxx.eu-north-1.rds.amazonaws.com
-POSTGRES_DB=grocerymate_db
-POSTGRES_USER=grocery_user
-POSTGRES_PASSWORD=********
-```
-
----
-
-## 📄 Environment (.env.example)
-
-```
-POSTGRES_HOST=
-POSTGRES_DB=
-POSTGRES_USER=
-POSTGRES_PASSWORD=
-
-USE_S3_STORAGE=true
-S3_BUCKET_NAME=
-S3_REGION=
-```
-
----
-
-## 🐳 Docker Build
-
-```
-docker build -t grocerymate .
-```
-
----
-
-## ▶️ Docker Run (EC2)
-
-```
-docker run --network host \
-  --env-file .env \
-  -v $(pwd)/.env:/app/.env \
-  -p 5000:5000 \
-  grocerymate
-```
-
----
-
-## 🌐 Zugriff
-
-```
-http://<EC2_PUBLIC_IP>:5000
-```
-
----
-
-## 🧪 Debugging
-
-```
-docker exec -it <container_id> bash
-env | grep POSTGRES
-env | grep S3_
-```
-
----
-
-## 🚀 Nächste Schritte
-
-- Terraform IaC
-- Load Balancer + HTTPS
-- CI/CD Pipeline
-- CloudWatch Logging
-
----
-
-## 👤 Autor
-
-GroceryMate – AWS Cloud Project
